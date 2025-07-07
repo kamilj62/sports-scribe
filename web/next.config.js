@@ -48,13 +48,13 @@ const nextConfig = {
       };
     }
     
-    // Handle NextUI theme resolution
+    // Handle module resolution
     config.resolve.alias = {
       ...config.resolve.alias,
-      // Handle tailwindcss/plugin resolution
-      'tailwindcss/plugin': path.join(process.cwd(), 'node_modules', 'tailwindcss', 'plugin.js'),
+      // Use a more reliable way to resolve tailwindcss/plugin
+      'tailwindcss/plugin': require.resolve('tailwindcss/plugin'),
       // Ensure consistent NextUI resolution
-      '@nextui-org/theme': path.join(process.cwd(), 'node_modules', '@nextui-org', 'theme', 'dist', 'index.js'),
+      '@nextui-org/theme': require.resolve('@nextui-org/theme/dist/index.js'),
     };
     
     // Add node_modules to the list of directories to search for modules
@@ -72,6 +72,9 @@ const nextConfig = {
         'node_modules',
       ],
     };
+    
+    // Ensure proper resolution of core-js
+    config.resolve.alias['core-js'] = path.dirname(require.resolve('core-js'));
 
     return config;
   },

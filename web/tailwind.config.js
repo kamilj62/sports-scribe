@@ -2,14 +2,19 @@
 const defaultTheme = require('tailwindcss/defaultTheme');
 const { fontFamily } = defaultTheme;
 
+// Explicitly require the plugin to ensure it's included in the build
+const plugin = require('tailwindcss/plugin');
+
 module.exports = {
-  // Ensure JIT mode is enabled for better performance
+  // Enable JIT mode for better performance
   mode: 'jit',
   content: [
     './app/**/*.{js,ts,jsx,tsx,mdx}',
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './utils/**/*.{js,ts,jsx,tsx,mdx}',
+    // Include NextUI components
+    './node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}',
   ],
   darkMode: 'class',
   theme: {
@@ -64,9 +69,19 @@ module.exports = {
     },
   },
   plugins: [
+    // Explicitly require the plugin to ensure it's included
+    plugin(function({ addUtilities }) {
+      // Add any custom utilities here if needed
+    }),
     require('@tailwindcss/typography'),
     require('@tailwindcss/forms')({
       strategy: 'class',
     }),
   ],
+  // Ensure proper module resolution
+  corePlugins: {
+    preflight: true,
+  },
+  // Important: This ensures all Tailwind utilities have !important
+  important: true,
 }
