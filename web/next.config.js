@@ -10,13 +10,19 @@ console.warn = (...args) => {
   originalConsoleWarn.apply(console, args);
 };
 
+// Disable SWC in favor of Babel
+process.env.NEXT_DISABLE_SWC = 'true';
+
 // Import custom webpack config
 const customWebpackConfig = require('./webpack.config');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Enable React Strict Mode for better development experience
-  reactStrictMode: true,
+  // Disable React Strict Mode to avoid potential issues with NextUI
+  reactStrictMode: false,
+  
+  // Disable SWC minification in favor of Terser
+  swcMinify: false,
   
   // Configure images
   images: {
@@ -34,6 +40,8 @@ const nextConfig = {
         alias: {
           ...config.resolve.alias,
           ...customWebpackConfig.resolve.alias,
+          // Ensure tailwindcss/plugin is resolved correctly
+          'tailwindcss/plugin': path.resolve(__dirname, 'node_modules/tailwindcss/plugin.js'),
         },
       },
       module: {
@@ -62,23 +70,25 @@ const nextConfig = {
     config.plugins.push(
       new webpack.NormalModuleReplacementPlugin(
         /tailwindcss\/plugin/,
-        path.resolve(__dirname, 'node_modules/tailwindcss/plugin')
+        path.resolve(__dirname, 'node_modules/tailwindcss/plugin.js')
       )
     );
 
     return config;
   },
   
-  // Enable experimental features
+  // Disable experimental features that might cause issues
   experimental: {
-    // Disable CSS optimizations as they might cause issues
+    // Disable CSS optimizations
     optimizeCss: false,
-    // Enable package imports optimization
-    optimizePackageImports: ['@nextui-org/react'],
-    // Enable server actions
-    serverActions: {
-      allowedOrigins: ['localhost:3000', 'sports-scribe.vercel.app']
-    },
+    // Disable package imports optimization
+    optimizePackageImports: [],
+    // Disable server actions
+    serverActions: false,
+    // Disable other experimental features
+    esmExternals: false,
+    externalDir: false,
+    outputFileTracingRoot: undefined,
   },
   
   // Transpile @nextui-org/react
@@ -86,8 +96,8 @@ const nextConfig = {
   
   // Compiler options
   compiler: {
-    // Enable styled-components support
-    styledComponents: true,
+    // Disable styled-components support
+    styledComponents: false,
     // Remove console.log in production
     removeConsole: process.env.NODE_ENV === 'production',
   },
