@@ -29,7 +29,6 @@
     "tailwind-merge": "^2.2.1",
     "tailwindcss": "^3.4.1",
     "tailwindcss-animate": "^1.0.7",
-    "tailwindcss-animate-pulse": "^0.1.4",
     "typescript": "^5.0.0"
   },
   "devDependencies": {
