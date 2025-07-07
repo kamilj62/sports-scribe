@@ -52,10 +52,17 @@ const nextConfig = {
     config.resolve.alias = {
       ...config.resolve.alias,
       // Force resolution of tailwindcss/plugin
-      'tailwindcss/plugin': path.resolve(__dirname, 'node_modules/tailwindcss/plugin.js'),
+      'tailwindcss/plugin': require.resolve('tailwindcss/plugin'),
       // Ensure consistent NextUI resolution
-      '@nextui-org/theme': path.resolve(__dirname, 'node_modules/@nextui-org/theme/dist/index.js'),
+      '@nextui-org/theme': require.resolve('@nextui-org/theme/dist/index.js'),
     };
+    
+    // Add node_modules to the list of directories to search for modules
+    config.resolve.modules = [
+      path.resolve(__dirname, 'node_modules'),
+      'node_modules',
+      ...(config.resolve.modules || []),
+    ];
 
     return config;
   },
