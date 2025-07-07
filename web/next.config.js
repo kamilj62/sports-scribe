@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 
 // Filter out deprecated NextUI warnings
 const originalConsoleWarn = console.warn;
@@ -8,6 +9,9 @@ console.warn = (...args) => {
   }
   originalConsoleWarn.apply(console, args);
 };
+
+// Import custom webpack config
+const customWebpackConfig = require('./webpack.config');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -19,20 +23,26 @@ const nextConfig = {
     domains: [],
   },
   
-  // Configure webpack
+  // Use custom webpack configuration
   webpack: (config, { isServer, dev }) => {
-    // Handle SVG imports
-    config.module.rules.push({
-      test: /\.svg$/,
-      use: ['@svgr/webpack'],
-    });
-
-    // Add fallback for Node.js modules
-    config.resolve.fallback = {
-      ...(config.resolve.fallback || {}),
-      fs: false,
-      path: false,
-      os: false,
+    // Merge custom webpack config
+    config = {
+      ...config,
+      resolve: {
+        ...config.resolve,
+        ...customWebpackConfig.resolve,
+        alias: {
+          ...config.resolve.alias,
+          ...customWebpackConfig.resolve.alias,
+        },
+      },
+      module: {
+        ...config.module,
+        rules: [
+          ...config.module.rules,
+          ...customWebpackConfig.module.rules,
+        ],
+      },
     };
 
     // Add additional fallbacks for client-side only
@@ -47,42 +57,22 @@ const nextConfig = {
         cluster: false,
       };
     }
-    
-    // Handle module resolution
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      // Use a more reliable way to resolve tailwindcss/plugin
-      'tailwindcss/plugin': require.resolve('tailwindcss/plugin'),
-      // Ensure consistent NextUI resolution
-      '@nextui-org/theme': require.resolve('@nextui-org/theme/dist/index.js'),
-    };
-    
-    // Add node_modules to the list of directories to search for modules
-    config.resolve.modules = [
-      path.resolve(__dirname, 'node_modules'),
-      'node_modules',
-      ...(config.resolve.modules || []),
-    ];
-    
-    // Add resolveLoader configuration
-    config.resolveLoader = {
-      ...config.resolveLoader,
-      modules: [
-        path.resolve(__dirname, 'node_modules'),
-        'node_modules',
-      ],
-    };
-    
-    // Ensure proper resolution of core-js
-    config.resolve.alias['core-js'] = path.dirname(require.resolve('core-js'));
+
+    // Add a plugin to handle the tailwindcss/plugin resolution
+    config.plugins.push(
+      new webpack.NormalModuleReplacementPlugin(
+        /tailwindcss\/plugin/,
+        path.resolve(__dirname, 'node_modules/tailwindcss/plugin')
+      )
+    );
 
     return config;
   },
   
   // Enable experimental features
   experimental: {
-    // Enable CSS optimizations
-    optimizeCss: true,
+    // Disable CSS optimizations as they might cause issues
+    optimizeCss: false,
     // Enable package imports optimization
     optimizePackageImports: ['@nextui-org/react'],
     // Enable server actions
@@ -90,6 +80,7 @@ const nextConfig = {
       allowedOrigins: ['localhost:3000', 'sports-scribe.vercel.app']
     },
   },
+  
   // Transpile @nextui-org/react
   transpilePackages: ['@nextui-org/react'],
   
