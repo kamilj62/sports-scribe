@@ -1,19 +1,28 @@
 const path = require('path');
 
+// Filter out deprecated NextUI warnings
+const originalConsoleWarn = console.warn;
+console.warn = (...args) => {
+  if (typeof args[0] === 'string' && args[0].includes('@nextui-org/')) {
+    return;
+  }
+  originalConsoleWarn.apply(console, args);
+};
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Enable React Strict Mode for better development experience
   reactStrictMode: true,
   
-  // Disable SWC minification in favor of Terser
-  swcMinify: false,
+  // Enable SWC for faster builds
+  swcMinify: true,
   
   // Configure images
   images: {
     domains: [],
   },
   
-  // Simple webpack configuration
+  // Webpack configuration
   webpack: (config, { isServer }) => {
     // Add fallbacks for Node.js modules
     if (!isServer) {
@@ -39,12 +48,14 @@ const nextConfig = {
     return config;
   },
   
-  // Enable experimental features
+  // Experimental features
   experimental: {
     // Enable CSS optimizations
     optimizeCss: true,
-    // Enable package imports optimization
+    // Optimize package imports
     optimizePackageImports: ['@nextui-org/react'],
+    // Disable server actions
+    serverActions: false,
   },
   
   // Transpile @nextui-org/react
@@ -83,15 +94,6 @@ const nextConfig = {
       },
     ];
   },
-};
-
-// Filter out deprecated NextUI warnings
-const originalConsoleWarn = console.warn;
-console.warn = (...args) => {
-  if (typeof args[0] === 'string' && args[0].includes('@nextui-org/')) {
-    return;
-  }
-  originalConsoleWarn.apply(console, args);
 };
 
 module.exports = nextConfig;
